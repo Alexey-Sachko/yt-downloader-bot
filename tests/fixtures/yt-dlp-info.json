@@ -1,0 +1,12 @@
+{
+  "id": "vid123",
+  "title": "Test Video",
+  "duration": 300,
+  "formats": [
+    { "format_id": "18", "ext": "mp4", "height": 360, "width": 640, "vcodec": "avc1", "acodec": "mp4a", "filesize": 20000000 },
+    { "format_id": "136", "ext": "mp4", "height": 720, "width": 1280, "vcodec": "avc1", "acodec": "none", "filesize": 60000000 },
+    { "format_id": "137", "ext": "mp4", "height": 1080, "width": 1920, "vcodec": "avc1", "acodec": "none", "filesize": 120000000 },
+    { "format_id": "401", "ext": "mp4", "height": 2160, "width": 3840, "vcodec": "av01", "acodec": "none", "filesize": 900000000 },
+    { "format_id": "140", "ext": "m4a", "height": null, "width": null, "vcodec": "none", "acodec": "mp4a", "filesize": 5000000 }
+  ]
+}
