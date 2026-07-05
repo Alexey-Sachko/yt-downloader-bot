@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim
 
 # System deps: ffmpeg (muxing) + python/curl to fetch yt-dlp
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl python3 \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # yt-dlp static binary (auto-updated by cron on the VPS)
