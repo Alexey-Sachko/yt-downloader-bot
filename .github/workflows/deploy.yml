@@ -1,6 +1,8 @@
 name: Deploy
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -18,6 +20,9 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
+    # Waits for manual approval — configure "production" in repo
+    # Settings → Environments with Required reviewers.
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - name: Deploy over SSH
