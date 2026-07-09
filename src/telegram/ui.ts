@@ -16,14 +16,14 @@ export function buttonRows(options: QualityOption[]): ButtonSpec[][] {
 export type Status =
   | { kind: "queued"; position: number }
   | { kind: "downloading"; percent: number }
-  | { kind: "uploading" }
+  | { kind: "uploading"; percent: number }
   | { kind: "done" };
 
 export function statusText(s: Status): string {
   switch (s.kind) {
     case "queued": return `⏳ In queue (position ${s.position})…`;
     case "downloading": return `⬇️ Downloading… ${Math.floor(s.percent)}%`;
-    case "uploading": return `⬆️ Uploading to Telegram…`;
+    case "uploading": return `⬆️ Uploading to Telegram… ${Math.floor(s.percent)}%`;
     case "done": return `✅ Done`;
   }
 }

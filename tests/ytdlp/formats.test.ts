@@ -13,11 +13,20 @@ const asInfo: VideoInfo = {
 const limits = { maxBytes: 500 * 1024 * 1024, maxDurationSec: 2 * 60 * 60 };
 
 describe("buildQualityOptions", () => {
-  it("produces one option per distinct height, sorted descending", () => {
+  it("produces one video option per distinct height (sorted desc) plus an audio option", () => {
     const opts = buildQualityOptions(asInfo, limits);
-    const labels = opts.map((o) => o.label);
+    const videoLabels = opts.filter((o) => o.kind === "video").map((o) => o.label);
     // 2160p (~905MB) is over the 500MB limit and must be filtered out
-    expect(labels).toEqual(["1080p", "720p", "360p"]);
+    expect(videoLabels).toEqual(["1080p", "720p", "360p"]);
+  });
+
+  it("appends a best-quality audio-only option last", () => {
+    const opts = buildQualityOptions(asInfo, limits);
+    const audio = opts.at(-1)!;
+    expect(audio.kind).toBe("audio");
+    expect(audio.height).toBeNull();
+    expect(audio.formatSelector).toBe("bestaudio/best");
+    expect(audio.approxBytes).toBe(5000000); // best audio bytes
   });
 
   it("estimates size = video bytes + best audio bytes for video-only formats", () => {

@@ -40,6 +40,9 @@ async function main() {
           w: 0, h: 0, supportsStreaming: true,
         }),
       ];
+      const progressCallback = opts.onProgress
+        ? (p: number) => opts.onProgress!(p * 100)
+        : undefined;
       try {
         await client.sendFile(chatId, {
           file: filePath,
@@ -47,15 +50,32 @@ async function main() {
           attributes,
           forceDocument: opts.asDocument,
           supportsStreaming: !opts.asDocument,
+          progressCallback,
         });
       } catch (err) {
         if (!opts.asDocument) {
           logger.warn("video send failed, retrying as document", { err: String(err) });
-          await client.sendFile(chatId, { file: filePath, caption: opts.title, forceDocument: true });
+          await client.sendFile(chatId, { file: filePath, caption: opts.title, forceDocument: true, progressCallback });
         } else {
           throw err;
         }
       }
+    },
+    async sendAudio(chatId, filePath, opts) {
+      await client.sendFile(chatId, {
+        file: filePath,
+        caption: opts.title,
+        attributes: [
+          new Api.DocumentAttributeAudio({
+            duration: Math.round(opts.durationSec ?? 0),
+            title: opts.title,
+            voice: false,
+          }),
+        ],
+        progressCallback: opts.onProgress
+          ? (p: number) => opts.onProgress!(p * 100)
+          : undefined,
+      });
     },
   };
 

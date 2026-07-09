@@ -22,8 +22,9 @@ export interface VideoInfo {
 
 /** A user-facing quality choice. */
 export interface QualityOption {
-  label: string; // e.g. "1080p"
-  height: number;
+  kind: "video" | "audio";
+  label: string; // e.g. "1080p" or "🎵 Audio (mp3)"
+  height: number | null; // null for audio-only
   formatSelector: string; // value passed to `yt-dlp -f`
   approxBytes: number | null;
 }

@@ -29,4 +29,9 @@ describe("statusText", () => {
   it("renders a percentage while downloading", () => {
     expect(statusText({ kind: "downloading", percent: 42 })).toContain("42");
   });
+  it("renders a percentage while uploading", () => {
+    const t = statusText({ kind: "uploading", percent: 73 });
+    expect(t).toContain("73");
+    expect(t).toMatch(/upload/i);
+  });
 });

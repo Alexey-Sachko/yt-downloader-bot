@@ -6,12 +6,13 @@ import { loadConfig } from "../../src/config.js";
 import type { VideoInfo } from "../../src/types.js";
 
 function makeBot(): Bot & { calls: any } {
-  const calls: any = { replies: [], edits: [], videos: [] };
+  const calls: any = { replies: [], edits: [], videos: [], audios: [] };
   return {
     calls,
     async reply(chatId, text) { calls.replies.push({ chatId, text }); return calls.replies.length; },
     async editText(chatId, messageId, text) { calls.edits.push({ messageId, text }); },
     async sendVideo(chatId, filePath, opts) { calls.videos.push({ filePath, opts }); },
+    async sendAudio(chatId, filePath, opts) { calls.audios.push({ filePath, opts }); },
   };
 }
 
@@ -76,6 +77,31 @@ describe("handleCallback", () => {
 
     expect(bot.calls.videos.length).toBe(1);
     expect(d.store.get(42)).toBeUndefined();
+    await fs.rm(real, { force: true });
+  });
+
+  it("sends an audio file (not video) when the audio option is chosen", async () => {
+    const bot = makeBot();
+    const d = deps(bot);
+    await handleMessage(d, { userId: 42, chatId: "c", text: "https://youtu.be/abc12345678" });
+    const stored = d.store.get(42)!;
+    const audioIndex = stored.options.findIndex((o) => o.kind === "audio");
+    expect(audioIndex).toBeGreaterThanOrEqual(0);
+
+    const fs = await import("node:fs/promises");
+    const os = await import("node:os");
+    const path = await import("node:path");
+    const real = path.join(os.tmpdir(), "handler-test.mp3");
+    await fs.writeFile(real, "x");
+    const dl = vi.fn(async () => real);
+    (d.download as any) = dl;
+
+    await handleCallback(d, { userId: 42, chatId: "c", data: `dl:${audioIndex}`, messageId: 1 });
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(bot.calls.audios.length).toBe(1);
+    expect(bot.calls.videos.length).toBe(0);
+    expect(dl.mock.calls[0][0].audioOnly).toBe(true);
     await fs.rm(real, { force: true });
   });
 

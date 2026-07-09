@@ -17,7 +17,8 @@ import fs from "node:fs/promises";
 export interface Bot {
   reply(chatId: string, text: string, buttons?: { text: string; data: string }[][]): Promise<number>;
   editText(chatId: string, messageId: number, text: string): Promise<void>;
-  sendVideo(chatId: string, filePath: string, opts: { durationSec: number | null; title: string; asDocument: boolean }): Promise<void>;
+  sendVideo(chatId: string, filePath: string, opts: { durationSec: number | null; title: string; asDocument: boolean; onProgress?: (percent: number) => void }): Promise<void>;
+  sendAudio(chatId: string, filePath: string, opts: { durationSec: number | null; title: string; onProgress?: (percent: number) => void }): Promise<void>;
 }
 
 export interface Deps {
@@ -26,7 +27,7 @@ export interface Deps {
   queue: Queue;
   bot: Bot;
   probe: (url: string) => Promise<VideoInfo>;
-  download: (a: { url: string; formatSelector: string; videoId: string; outDir: string; onProgress: (p: number) => void }) => Promise<string>;
+  download: (a: { url: string; formatSelector: string; videoId: string; outDir: string; audioOnly?: boolean; onProgress: (p: number) => void }) => Promise<string>;
 }
 
 /** Handle an incoming text message (expected to be a YouTube link). */
@@ -132,6 +133,7 @@ export async function handleCallback(
         formatSelector: option.formatSelector,
         videoId: extractYouTubeVideoId(session.url) ?? "video",
         outDir: ws.dir,
+        audioOnly: option.kind === "audio",
         onProgress: (p) => {
           if (Math.floor(p) >= lastShown + 5) {
             lastShown = Math.floor(p);
@@ -143,12 +145,28 @@ export async function handleCallback(
       const size = (await fs.stat(filePath)).size;
       if (size > config.maxFilesizeBytes) throw new TooLargeError();
 
-      await bot.editText(input.chatId, input.messageId, statusText({ kind: "uploading" }));
-      await bot.sendVideo(input.chatId, filePath, {
-        durationSec: session.durationSec,
-        title: session.title,
-        asDocument: false,
-      });
+      await bot.editText(input.chatId, input.messageId, statusText({ kind: "uploading", percent: 0 }));
+      let lastUploaded = -1;
+      const onUpload = (p: number) => {
+        if (Math.floor(p) >= lastUploaded + 5) {
+          lastUploaded = Math.floor(p);
+          void bot.editText(input.chatId, input.messageId, statusText({ kind: "uploading", percent: p }));
+        }
+      };
+      if (option.kind === "audio") {
+        await bot.sendAudio(input.chatId, filePath, {
+          durationSec: session.durationSec,
+          title: session.title,
+          onProgress: onUpload,
+        });
+      } else {
+        await bot.sendVideo(input.chatId, filePath, {
+          durationSec: session.durationSec,
+          title: session.title,
+          asDocument: false,
+          onProgress: onUpload,
+        });
+      }
       await bot.editText(input.chatId, input.messageId, statusText({ kind: "done" }));
     } catch (err) {
       await replyForError(bot, input.chatId, err, config);

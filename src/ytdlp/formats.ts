@@ -38,6 +38,7 @@ export function buildQualityOptions(info: VideoInfo, limits: FormatLimits): Qual
     const approxBytes = own == null ? null : isProgressive ? own : own + (audioBytes ?? 0);
     if (approxBytes != null && approxBytes > limits.maxBytes) continue;
     options.push({
+      kind: "video",
       label: `${height}p`,
       height,
       formatSelector: `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]`,
@@ -45,5 +46,18 @@ export function buildQualityOptions(info: VideoInfo, limits: FormatLimits): Qual
     });
   }
 
-  return options.sort((a, b) => b.height - a.height);
+  options.sort((a, b) => b.height! - a.height!);
+
+  // Audio-only, always best quality. Appended after the video options.
+  if (audioBytes == null || audioBytes <= limits.maxBytes) {
+    options.push({
+      kind: "audio",
+      label: "🎵 Audio (mp3)",
+      height: null,
+      formatSelector: "bestaudio/best",
+      approxBytes: audioBytes,
+    });
+  }
+
+  return options;
 }

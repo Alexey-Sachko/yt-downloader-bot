@@ -8,21 +8,28 @@ export interface DownloadArgs {
   formatSelector: string;
   videoId: string;
   outDir: string;
+  audioOnly?: boolean;
   onProgress: (percent: number) => void;
 }
 
 /**
- * Run `yt-dlp -f <selector> --merge-output-format mp4` into outDir.
- * Resolves with the absolute path of the produced mp4 file.
+ * Run yt-dlp into outDir. For video, merges to mp4; for audio-only, extracts
+ * the best audio track to mp3 (best VBR quality).
+ * Resolves with the absolute path of the produced file.
  */
 export function download(args: DownloadArgs): Promise<string> {
-  const outPath = path.join(args.outDir, `${args.videoId}.mp4`);
+  const ext = args.audioOnly ? "mp3" : "mp4";
+  const outPath = path.join(args.outDir, `${args.videoId}.${ext}`);
   const outTemplate = path.join(args.outDir, `${args.videoId}.%(ext)s`);
+
+  const formatArgs = args.audioOnly
+    ? ["-x", "--audio-format", "mp3", "--audio-quality", "0"]
+    : ["--merge-output-format", "mp4"];
 
   return new Promise<string>((resolve, reject) => {
     const proc = spawn("yt-dlp", [
       "-f", args.formatSelector,
-      "--merge-output-format", "mp4",
+      ...formatArgs,
       "--no-playlist",
       "--newline",
       "--no-warnings",

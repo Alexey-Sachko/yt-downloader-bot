@@ -37,6 +37,29 @@ describe("download", () => {
     expect(seen).toContain(100);
   });
 
+  it("extracts audio to mp3 and resolves with the .mp3 path when audioOnly", async () => {
+    const proc = new FakeProc();
+    spawnMock.mockReturnValue(proc);
+
+    const promise = download({
+      url: "https://youtu.be/abc",
+      formatSelector: "bestaudio/best",
+      videoId: "abc",
+      outDir: "/tmp/work",
+      audioOnly: true,
+      onProgress: () => {},
+    });
+
+    proc.emit("close", 0);
+    const path = await promise;
+
+    expect(path).toBe("/tmp/work/abc.mp3");
+    const args = spawnMock.mock.calls[0][1] as string[];
+    expect(args).toContain("-x");
+    expect(args).toContain("mp3");
+    expect(args).not.toContain("--merge-output-format");
+  });
+
   it("rejects with DownloadError on non-zero exit", async () => {
     const proc = new FakeProc();
     spawnMock.mockReturnValue(proc);
