@@ -41,7 +41,13 @@ export function buildQualityOptions(info: VideoInfo, limits: FormatLimits): Qual
       kind: "video",
       label: `${height}p`,
       height,
-      formatSelector: `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]`,
+      width: f.width ?? null,
+      // Prefer H.264 video + AAC audio so Telegram can stream/play inline.
+      // Falls back to whatever exists (e.g. VP9/AV1 at 1440p+) so downloads never fail.
+      formatSelector:
+        `bestvideo[height<=${height}][vcodec^=avc1]+bestaudio[acodec^=mp4a]/` +
+        `best[height<=${height}][vcodec^=avc1]/` +
+        `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]`,
       approxBytes,
     });
   }
@@ -54,6 +60,7 @@ export function buildQualityOptions(info: VideoInfo, limits: FormatLimits): Qual
       kind: "audio",
       label: "🎵 Audio (mp3)",
       height: null,
+      width: null,
       formatSelector: "bestaudio/best",
       approxBytes: audioBytes,
     });

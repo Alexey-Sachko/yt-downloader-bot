@@ -24,7 +24,12 @@ export function download(args: DownloadArgs): Promise<string> {
 
   const formatArgs = args.audioOnly
     ? ["-x", "--audio-format", "mp3", "--audio-quality", "0"]
-    : ["--merge-output-format", "mp4"];
+    : [
+        "--merge-output-format", "mp4",
+        // Move the moov atom to the front so Telegram can stream the video
+        // inline instead of showing a single still frame.
+        "--postprocessor-args", "Merger:-movflags +faststart",
+      ];
 
   return new Promise<string>((resolve, reject) => {
     const proc = spawn("yt-dlp", [

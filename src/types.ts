@@ -25,6 +25,7 @@ export interface QualityOption {
   kind: "video" | "audio";
   label: string; // e.g. "1080p" or "🎵 Audio (mp3)"
   height: number | null; // null for audio-only
+  width: number | null; // pixel width of the chosen video format, if known
   formatSelector: string; // value passed to `yt-dlp -f`
   approxBytes: number | null;
 }

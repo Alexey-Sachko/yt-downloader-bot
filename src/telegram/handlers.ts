@@ -17,7 +17,7 @@ import fs from "node:fs/promises";
 export interface Bot {
   reply(chatId: string, text: string, buttons?: { text: string; data: string }[][]): Promise<number>;
   editText(chatId: string, messageId: number, text: string): Promise<void>;
-  sendVideo(chatId: string, filePath: string, opts: { durationSec: number | null; title: string; asDocument: boolean; onProgress?: (percent: number) => void }): Promise<void>;
+  sendVideo(chatId: string, filePath: string, opts: { durationSec: number | null; title: string; width: number | null; height: number | null; asDocument: boolean; onProgress?: (percent: number) => void }): Promise<void>;
   sendAudio(chatId: string, filePath: string, opts: { durationSec: number | null; title: string; onProgress?: (percent: number) => void }): Promise<void>;
 }
 
@@ -163,6 +163,8 @@ export async function handleCallback(
         await bot.sendVideo(input.chatId, filePath, {
           durationSec: session.durationSec,
           title: session.title,
+          width: option.width,
+          height: option.height,
           asDocument: false,
           onProgress: onUpload,
         });

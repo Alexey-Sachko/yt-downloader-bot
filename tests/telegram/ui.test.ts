@@ -3,8 +3,8 @@ import { buttonRows, statusText } from "../../src/telegram/ui.js";
 import type { QualityOption } from "../../src/types.js";
 
 const opts: QualityOption[] = [
-  { label: "1080p", height: 1080, formatSelector: "s1080", approxBytes: 125_000_000 },
-  { label: "720p", height: 720, formatSelector: "s720", approxBytes: null },
+  { kind: "video", label: "1080p", height: 1080, width: 1920, formatSelector: "s1080", approxBytes: 125_000_000 },
+  { kind: "video", label: "720p", height: 720, width: 1280, formatSelector: "s720", approxBytes: null },
 ];
 
 describe("buttonRows", () => {

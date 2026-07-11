@@ -41,10 +41,12 @@ describe("buildQualityOptions", () => {
     expect(p360.approxBytes).toBe(20000000);
   });
 
-  it("builds an ffmpeg-merge selector for a given height", () => {
+  it("builds an H.264/AAC-preferring merge selector for a given height", () => {
     const opts = buildQualityOptions(asInfo, limits);
     const p720 = opts.find((o) => o.label === "720p")!;
-    expect(p720.formatSelector).toBe("bestvideo[height<=720]+bestaudio/best[height<=720]");
+    // prefers avc1 + m4a for Telegram inline playback, falling back to any codec
+    expect(p720.formatSelector).toContain("bestvideo[height<=720][vcodec^=avc1]+bestaudio[acodec^=mp4a]");
+    expect(p720.formatSelector).toContain("best[height<=720]");
   });
 
   it("returns [] when all heights exceed the size limit", () => {

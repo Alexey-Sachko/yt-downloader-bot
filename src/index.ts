@@ -37,7 +37,9 @@ async function main() {
       const attributes = opts.asDocument ? undefined : [
         new Api.DocumentAttributeVideo({
           duration: Math.round(opts.durationSec ?? 0),
-          w: 0, h: 0, supportsStreaming: true,
+          w: opts.width ?? 0,
+          h: opts.height ?? 0,
+          supportsStreaming: true,
         }),
       ];
       const progressCallback = opts.onProgress
